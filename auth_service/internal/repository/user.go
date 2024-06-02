@@ -5,6 +5,7 @@ import (
 	"auth_service/pkg/storage"
 	mongodb "auth_service/pkg/storage/mongo"
 	"context"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -52,9 +53,19 @@ func (s *Storage) SaveUser(ctx context.Context, email string, name string, passH
 }
 
 func (s *Storage) User(ctx context.Context, email string) (entities.User, error) {
-	const op = "storage.postgres.GetUser"
+	const op = "repository.user.User"
 
 	var user entities.User
+
+	err := s.database.Collection("users").FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return entities.User{}, fmt.Errorf("%s:%w", op, storage.ErrNoRecordFound)
+		default:
+			return entities.User{}, fmt.Errorf("%s:%w", op, err)
+		}
+	}
 
 	return user, nil
 }

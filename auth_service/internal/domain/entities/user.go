@@ -11,7 +11,7 @@ type User struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty"`
 	Email          string             `bson:"email"`
 	Name           string             `bson:"name"`
-	HashedPassword []byte             `bson:"hashedPassword"`
+	HashedPassword []byte             `bson:"pass_hash"`
 	Created        time.Time          `bson:"created"`
 	Role           string             `bson:"role"`
 }
