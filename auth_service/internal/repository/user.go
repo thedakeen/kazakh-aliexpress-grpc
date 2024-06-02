@@ -52,8 +52,8 @@ func (s *Storage) SaveUser(ctx context.Context, email string, name string, passH
 	return id, nil
 }
 
-func (s *Storage) User(ctx context.Context, email string) (entities.User, error) {
-	const op = "repository.user.User"
+func (s *Storage) GetUser(ctx context.Context, email string) (entities.User, error) {
+	const op = "repository.user.GetUser"
 
 	var user entities.User
 
@@ -71,7 +71,7 @@ func (s *Storage) User(ctx context.Context, email string) (entities.User, error)
 }
 
 func (s *Storage) IsAdmin(ctx context.Context, userID string) (bool, error) {
-	const op = "storage.sqlite.IsAdmin"
+	const op = "repository.user.IsAdmin"
 
 	return false, nil
 }

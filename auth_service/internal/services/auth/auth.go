@@ -25,7 +25,7 @@ type UserSaver interface {
 }
 
 type UserProvider interface {
-	User(ctx context.Context, email string) (entities.User, error)
+	GetUser(ctx context.Context, email string) (entities.User, error)
 	IsAdmin(ctx context.Context, userID string) (bool, error)
 }
 
@@ -57,7 +57,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 
 	log.Info("attempting to login user")
 
-	user, err := a.userProvider.User(ctx, email)
+	user, err := a.userProvider.GetUser(ctx, email)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrNoRecordFound):
