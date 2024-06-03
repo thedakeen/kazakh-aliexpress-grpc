@@ -1,10 +1,10 @@
 package auth
 
 import (
-	authv1 "auth_service/gen/auth"
-	"auth_service/internal/grpc/structs"
-	"auth_service/internal/services/auth"
-	"auth_service/pkg/storage"
+	authv1 "auth/gen/auth"
+	"auth/internal/grpc/structs"
+	"auth/internal/services/auth"
+	"auth/pkg/storage"
 	"context"
 	"errors"
 	"github.com/go-playground/validator/v10"

@@ -1,7 +1,7 @@
 package grpcapp
 
 import (
-	authgrpc "auth_service/internal/grpc/auth"
+	authgrpc "auth/internal/grpc/auth"
 	"fmt"
 	"golang.org/x/exp/slog"
 	"google.golang.org/grpc"

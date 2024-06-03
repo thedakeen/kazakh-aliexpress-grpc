@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"auth_service/internal/domain/entities"
+	"auth/internal/domain/entities"
 	"github.com/golang-jwt/jwt"
 	"time"
 )

@@ -1,9 +1,9 @@
 package app
 
 import (
-	grpcapp "auth_service/internal/app/grpc"
-	"auth_service/internal/repository"
-	"auth_service/internal/services/auth"
+	grpcapp "auth/internal/app/grpc"
+	"auth/internal/repository"
+	"auth/internal/services/auth"
 	"golang.org/x/exp/slog"
 	"time"
 )

@@ -1,4 +1,4 @@
-module auth_service
+module auth
 
 go 1.20
 
@@ -7,7 +7,6 @@ require (
 	github.com/go-playground/validator/v10 v10.21.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/thedakeen/kazakh-aliexpress-protos v0.0.5
 	go.mongodb.org/mongo-driver v1.15.0
 	golang.org/x/crypto v0.21.0
 	golang.org/x/exp v0.0.0-20240531132922-fd00a4e0eefc

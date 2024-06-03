@@ -1,10 +1,10 @@
 package main
 
 import (
-	"auth_service/internal/app"
-	"auth_service/internal/config"
-	"auth_service/internal/lib/logger/handlers/slogpretty"
-	"auth_service/pkg/storage/mongo"
+	"auth/internal/app"
+	"auth/internal/config"
+	"auth/internal/lib/logger/handlers/slogpretty"
+	"auth/pkg/storage/mongo"
 	"context"
 	"golang.org/x/exp/slog"
 	"os"

@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"auth_service/internal/domain/entities"
-	"auth_service/pkg/storage"
-	mongodb "auth_service/pkg/storage/mongo"
+	"auth/internal/domain/entities"
+	"auth/pkg/storage"
+	mongodb "auth/pkg/storage/mongo"
 	"context"
 	"errors"
 	"fmt"

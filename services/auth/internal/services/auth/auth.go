@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"auth_service/internal/domain/entities"
-	"auth_service/internal/lib/jwt"
-	"auth_service/internal/lib/logger/sl"
-	"auth_service/pkg/storage"
+	"auth/internal/domain/entities"
+	"auth/internal/lib/jwt"
+	"auth/internal/lib/logger/sl"
+	"auth/pkg/storage"
 	"context"
 	"errors"
 	"fmt"
