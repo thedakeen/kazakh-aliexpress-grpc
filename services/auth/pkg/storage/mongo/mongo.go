@@ -13,7 +13,6 @@ var (
 )
 
 func MustStart(uri string, opts ...*options.ClientOptions) {
-	const op = "storage.mongo.MustStart"
 	if len(opts) == 0 {
 		opt = options.Client().ApplyURI(uri)
 	} else {

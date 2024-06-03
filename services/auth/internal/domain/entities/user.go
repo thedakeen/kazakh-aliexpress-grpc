@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -16,16 +15,10 @@ type User struct {
 	Role           string             `bson:"role"`
 }
 
-func Matches(password string) error {
-	var user User
+func Matches(user User, password string) error {
 	err := bcrypt.CompareHashAndPassword(user.HashedPassword, []byte(password))
 	if err != nil {
-		switch {
-		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
-			return nil
-		default:
-			return err
-		}
+		return err
 	}
 
 	return nil

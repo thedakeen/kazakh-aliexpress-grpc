@@ -1,13 +1,13 @@
 package auth
 
 import (
+	authv1 "auth_service/gen/auth"
 	"auth_service/internal/grpc/structs"
 	"auth_service/internal/services/auth"
 	"auth_service/pkg/storage"
 	"context"
 	"errors"
 	"github.com/go-playground/validator/v10"
-	authv1 "github.com/thedakeen/kazakh-aliexpress-protos/gen/go/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

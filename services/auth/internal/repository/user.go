@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type Storage struct {
@@ -41,6 +42,7 @@ func (s *Storage) SaveUser(ctx context.Context, email string, name string, passH
 		"name":      name,
 		"pass_hash": passHash,
 		"role":      "buyer",
+		"created":   time.Now(),
 	}
 
 	result, err := s.database.Collection("users").InsertOne(ctx, user)

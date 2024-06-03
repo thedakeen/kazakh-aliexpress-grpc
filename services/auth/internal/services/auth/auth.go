@@ -52,7 +52,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 
 	log := a.log.With(
 		slog.String("op", op),
-		slog.String("username", email),
+		slog.String("email", email),
 	)
 
 	log.Info("attempting to login user")
@@ -69,7 +69,8 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 		}
 	}
 
-	err = bcrypt.CompareHashAndPassword(user.HashedPassword, []byte(password))
+	//err = bcrypt.CompareHashAndPassword(user.HashedPassword, []byte(password))
+	err = entities.Matches(user, password)
 	if err != nil {
 		log.Info("invalid credentials", sl.Err(err))
 		return "", fmt.Errorf("%s:%w", op, ErrInvalidCredentials)
