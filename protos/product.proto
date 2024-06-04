@@ -16,13 +16,24 @@ message Category{
   string name = 2;
 }
 
+message Info {
+  string info_title = 1;
+  string info_content = 2;
+}
+
+message Option {
+  string option_title = 1;
+  repeated string option_options = 2;
+}
+
 message Prod{
   string id = 1;
   string name = 2;
   float price = 3;
-  string description = 4;
-  repeated Category categories = 5;
-  repeated string image_urls = 6;
+  repeated Category categories = 4;
+  repeated string image_urls = 5;
+  repeated Info infos = 6;
+  repeated Option options = 7;
 }
 
 /////////////////////////////////////
@@ -42,7 +53,7 @@ message ProductRequest{
 }
 
 message ProductResponse{
-
+  Prod prod = 1;
 }
 
 /////////////////////////////////////

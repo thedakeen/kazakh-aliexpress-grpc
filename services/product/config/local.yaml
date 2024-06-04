@@ -1,8 +1,11 @@
 env: "local"
 storage_path: "mongodb+srv://thedakeen:bYOC9DgDKO1zBIfR@cluster0.jbvthwy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-token_ttl: 1h
 mongodb:
   uri: "mongodb+srv://thedakeen:bYOC9DgDKO1zBIfR@cluster0.jbvthwy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 grpc:
   port: 6000
   timeout: 10h
+clients:
+  address: "localhost:5000"
+  timeout: 1m
+  retries_count: 3
