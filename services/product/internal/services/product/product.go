@@ -24,7 +24,7 @@ type CategoryProvider interface {
 
 type ProductProvider interface {
 	GetProduct(ctx context.Context, productID string) (*entities.Product, error)
-	GetProductsByCategory(ctx context.Context, categoryName string) ([]entities.Product, error)
+	GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) ([]*entities.Product, error)
 }
 
 var (
@@ -93,4 +93,15 @@ func (a *Product) GetProduct(ctx context.Context, productID string) (*entities.P
 	log.Info("get product successfully")
 
 	return product, nil
+}
+
+func (a *Product) GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) (*[]entities.Product, error) {
+	const op = "product.GetProductsByCategory"
+
+	log := a.log.With(
+		"op", op,
+		"category", categoryID,
+	)
+
+	log.Info("attempting to get products by category")
 }

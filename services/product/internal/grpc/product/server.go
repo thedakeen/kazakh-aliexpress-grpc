@@ -23,6 +23,7 @@ import (
 type Product interface {
 	Categories(ctx context.Context) ([]entities.Category, error)
 	GetProduct(ctx context.Context, productID string) (*entities.Product, error)
+	GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) (*[]entities.Product, error)
 	// TODO: products
 }
 
