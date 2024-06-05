@@ -17,13 +17,14 @@ import (
 	"product/internal/grpc/structs"
 	"product/internal/lib/logger/sl"
 	productService "product/internal/services/product"
+	"strings"
 	"time"
 )
 
 type Product interface {
 	Categories(ctx context.Context) ([]entities.Category, error)
 	GetProduct(ctx context.Context, productID string) (*entities.Product, error)
-	GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) (*[]entities.Product, error)
+	GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) ([]*entities.Product, error)
 	// TODO: products
 }
 
@@ -157,7 +158,7 @@ func (s *serverAPI) GetProduct(ctx context.Context, req *productv1.ProductReques
 		case errors.Is(err, productService.ErrNoProduct):
 			return nil, status.Error(codes.InvalidArgument, "invalid product id")
 		default:
-			return nil, status.Error(codes.Internal, "failed to login")
+			return nil, status.Error(codes.Internal, "failed to get product")
 		}
 	}
 
@@ -198,5 +199,52 @@ func (s *serverAPI) GetProduct(ctx context.Context, req *productv1.ProductReques
 
 	return &productv1.ProductResponse{
 		Product: prod,
+	}, nil
+}
+
+func (s *serverAPI) GetProductsByCategory(ctx context.Context, req *productv1.ProductsByCategoryRequest) (*productv1.ProductsByCategoryResponse, error) {
+	productsByCategoryRequest := structs.ProductsByCategoryRequest{
+		CategoryID: req.CategoryId,
+		Limit:      req.Limit,
+		Offset:     req.Offset,
+		SortOrder:  req.SortOrder,
+	}
+
+	err := s.v.Struct(productsByCategoryRequest)
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	sortOrder := req.SortOrder
+	if strings.TrimSpace(sortOrder) == "" {
+		sortOrder = "asc"
+	} else if sortOrder != "asc" && sortOrder != "desc" {
+		return nil, status.Error(codes.InvalidArgument, "invalid sort order")
+	}
+
+	products, err := s.product.GetProductsByCategory(ctx, req.GetCategoryId(), req.Limit, req.Offset, sortOrder)
+	if err != nil {
+		switch {
+		case errors.Is(err, productService.ErrNoProduct):
+			return nil, status.Error(codes.InvalidArgument, "invalid category id")
+		default:
+			return nil, status.Error(codes.Internal, "failed to get products by category id")
+		}
+	}
+
+	var productsPointers []*productv1.ProductEntry
+	for _, product := range products {
+		productsPointer := &productv1.ProductEntry{
+			Id:        product.ID.Hex(),
+			Name:      product.ProductName,
+			Price:     product.Price,
+			ImageUrls: product.Images,
+		}
+		productsPointers = append(productsPointers, productsPointer)
+	}
+
+	return &productv1.ProductsByCategoryResponse{
+		Products: productsPointers,
 	}, nil
 }

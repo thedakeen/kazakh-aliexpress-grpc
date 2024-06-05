@@ -95,29 +95,25 @@ func (s *Storage) GetProduct(ctx context.Context, productID string) (*entities.P
 func (s *Storage) GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) ([]*entities.Product, error) {
 	const op = "repository.product.GetProductsByCategory"
 
-	var products []*entities.Product
-
-	objID, err := primitive.ObjectIDFromHex(categoryID)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
 	filter := bson.D{
-		{"categories", bson.D{
-			{"$elemMatch", bson.D{{"_id", objID}}},
+		{"$match", bson.D{
+			{"categories", bson.D{
+				{"$elemMatch", bson.D{{"_id", categoryID}}},
+			}},
 		}},
 	}
 
-	var sort string
+	sortStage := bson.D{}
 	if sortOrder == "desc" {
-		sort = "-item_name"
+		sortStage = bson.D{{"$sort", bson.D{{"item_name", -1}}}}
 	} else {
-		sort = "item_name"
+		sortStage = bson.D{{"$sort", bson.D{{"item_name", 1}}}}
 	}
 
-	opts := options.Find().SetSort(sort).SetLimit(limit).SetSkip(offset)
+	skipStage := bson.D{{"$skip", offset}}
+	limitStage := bson.D{{"$limit", limit}}
 
-	cursor, err := s.database.Collection("products").Find(ctx, filter, opts)
+	cursor, err := s.database.Collection("items").Aggregate(ctx, mongo.Pipeline{filter, sortStage, skipStage, limitStage})
 	if err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNoDocuments):
@@ -134,16 +130,9 @@ func (s *Storage) GetProductsByCategory(ctx context.Context, categoryID string, 
 		}
 	}(cursor, ctx)
 
-	for cursor.Next(ctx) {
-		var product entities.Product
-		if err := cursor.Decode(&product); err != nil {
-			return nil, fmt.Errorf("%s:%w", op, err)
-		}
-		products = append(products, &product)
-	}
-
-	if err := cursor.Err(); err != nil {
-		return nil, fmt.Errorf("%s:%w", op, err)
+	var products []*entities.Product
+	if err = cursor.All(ctx, &products); err != nil {
+		return nil, storage.ErrNoRecordFound
 	}
 
 	if len(products) == 0 {
@@ -151,4 +140,5 @@ func (s *Storage) GetProductsByCategory(ctx context.Context, categoryID string, 
 	}
 
 	return products, nil
+
 }
