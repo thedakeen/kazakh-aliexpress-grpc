@@ -30,6 +30,7 @@ service Auth{
  }
 
  message IsTokenValidRequest{
+  string token = 1;
  }
 
  message IsTokenValidResponse{
