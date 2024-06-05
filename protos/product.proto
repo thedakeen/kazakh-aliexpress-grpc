@@ -6,8 +6,13 @@ option go_package = "kazali.product.v1;productv1";
 
 service Product{
   rpc Categories (CategoryRequest) returns (CategoryResponse);
+
+  rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse);
+//  rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse);
+//  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+
   rpc ProductsByCategory (ProductsByCategoryRequest) returns (ProductsByCategoryResponse);
-  rpc Product (ProductRequest) returns (ProductResponse);
+  rpc GetProduct (ProductRequest) returns (ProductResponse);
 }
 
 
@@ -16,13 +21,24 @@ message Category{
   string name = 2;
 }
 
-message Prod{
+message ProductInfo {
+  string info_title = 1;
+  string info_content = 2;
+}
+
+message ProductVariant {
+  string variant_title = 1;
+  repeated string variant_options = 2;
+}
+
+message ProductEntry{
   string id = 1;
   string name = 2;
   float price = 3;
-  string description = 4;
-  repeated Category categories = 5;
-  repeated string image_urls = 6;
+  repeated Category categories = 4;
+  repeated string image_urls = 5;
+  repeated ProductInfo infos = 6;
+  repeated ProductVariant options = 7;
 }
 
 /////////////////////////////////////
@@ -33,6 +49,26 @@ message CategoryResponse{
   repeated Category categories = 1;
 }
 
+
+message CreateCategoryRequest{
+  Category category = 1;
+}
+
+message CreateCategoryResponse{
+  Category category = 1;
+}
+
+message UpdateCategoryRequest{
+  string id = 1;
+  string name = 2;
+}
+
+message DeleteCategoryRequest{
+  string id = 1;
+}
+
+message Delete{}
+
 /////////////////////////////////////
 
 /////////////////////////////////////
@@ -42,7 +78,7 @@ message ProductRequest{
 }
 
 message ProductResponse{
-
+  ProductEntry product = 1;
 }
 
 /////////////////////////////////////
@@ -54,7 +90,7 @@ message ProductsByCategoryRequest{
 }
 
 message ProductsByCategoryResponse{
-  repeated Prod products = 1;
+  repeated ProductEntry products = 1;
 }
 
 /////////////////////////////////////

@@ -26,7 +26,6 @@ type UserSaver interface {
 
 type UserProvider interface {
 	GetUser(ctx context.Context, email string) (entities.User, error)
-	IsAdmin(ctx context.Context, userID string) (bool, error)
 }
 
 var (
@@ -69,7 +68,6 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 		}
 	}
 
-	//err = bcrypt.CompareHashAndPassword(user.HashedPassword, []byte(password))
 	err = entities.Matches(user, password)
 	if err != nil {
 		log.Info("invalid credentials", sl.Err(err))
@@ -112,24 +110,4 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, name string, p
 	}
 
 	return id, nil
-}
-
-func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
-	const op = "auth.IsAdmin"
-
-	log := a.log.With(
-		slog.String("op", op),
-		slog.String("user_id", userID),
-	)
-
-	log.Info("checking if user is admin")
-
-	isAdmin, err := a.userProvider.IsAdmin(ctx, userID)
-	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, err)
-	}
-
-	log.Info("checked if user is admin", slog.Bool("is_admin", isAdmin))
-
-	return isAdmin, nil
 }
