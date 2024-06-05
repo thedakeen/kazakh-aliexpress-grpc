@@ -26,7 +26,6 @@ type UserSaver interface {
 
 type UserProvider interface {
 	GetUser(ctx context.Context, email string) (entities.User, error)
-	//IsLoggedIn(ctx context.Context, token string) (bool, error)
 }
 
 var (
@@ -112,23 +111,3 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, name string, p
 
 	return id, nil
 }
-
-//func (a *Auth) IsLoggedIn(ctx context.Context, token string) (bool, error) {
-//	const op = "auth.IsLoggedIn"
-//
-//	log := a.log.With(
-//		slog.String("op", op),
-//		slog.String("token", token),
-//	)
-//
-//	log.Info("checking if user is logged in")
-//
-//	isLoggedIn, err := a.userProvider.IsLoggedIn(ctx, token)
-//	if err != nil {
-//		return false, fmt.Errorf("%s: %w", op, err)
-//	}
-//
-//	log.Info("checked if user is logged in", slog.Bool("is_logged_in", isLoggedIn))
-//
-//	return isLoggedIn, nil
-//}

@@ -18,7 +18,6 @@ import (
 type Auth interface {
 	Login(ctx context.Context, email string, password string) (token string, err error)
 	RegisterNewUser(ctx context.Context, email string, name string, password string) (userID string, err error)
-	//IsLoggedIn(ctx context.Context, userID string) (bool, error)
 }
 
 type serverAPI struct {
