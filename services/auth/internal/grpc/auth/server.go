@@ -16,7 +16,7 @@ import (
 type Auth interface {
 	Login(ctx context.Context, email string, password string) (token string, err error)
 	RegisterNewUser(ctx context.Context, email string, name string, password string) (userID string, err error)
-	IsAdmin(ctx context.Context, userID string) (bool, error)
+	IsLoggedIn(ctx context.Context, userID string) (bool, error)
 }
 
 type serverAPI struct {
@@ -86,17 +86,17 @@ func (s *serverAPI) Register(ctx context.Context, req *authv1.RegisterRequest) (
 	}, nil
 }
 
-func (s *serverAPI) IsAdmin(ctx context.Context, req *authv1.IsAdminRequest) (*authv1.IsAdminResponse, error) {
-	isAdminRequest := structs.IsAdminRequest{
+func (s *serverAPI) IsLoggedIn(ctx context.Context, req *authv1.IsLoggedInRequest) (*authv1.IsLoggedInResponse, error) {
+	isLoggedInRequest := structs.IsLoggedInRequest{
 		UserID: req.UserId,
 	}
 
-	err := s.v.Struct(isAdminRequest)
+	err := s.v.Struct(isLoggedInRequest)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
+	isLoggedIn, err := s.auth.IsLoggedIn(ctx, req.GetUserId())
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrNoRecordFound):
@@ -106,7 +106,7 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *authv1.IsAdminRequest) (*a
 		}
 	}
 
-	return &authv1.IsAdminResponse{
-		IsAdmin: isAdmin,
+	return &authv1.IsLoggedInResponse{
+		IsLoggedIn: isLoggedIn,
 	}, nil
 }

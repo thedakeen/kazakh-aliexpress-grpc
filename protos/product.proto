@@ -8,6 +8,13 @@ service Product{
   rpc Categories (CategoryRequest) returns (CategoryResponse);
   rpc ProductsByCategory (ProductsByCategoryRequest) returns (ProductsByCategoryResponse);
   rpc Product (ProductRequest) returns (ProductResponse);
+//  TODO
+//  rpc AddProduct (ProductRequest) returns (ProductResponse);
+//  rpc UpdateProduct (ProductRequest) returns (ProductResponse);
+//  rpc DeleteProduct (ProductRequest) returns (ProductResponse);
+//  rpc CreateCategory (ProductRequest) returns (ProductResponse);
+//  rpc DeleteCategory (ProductRequest) returns (ProductResponse);
+//  rpc UpdateCategory (ProductRequest) returns (ProductResponse);
 }
 
 

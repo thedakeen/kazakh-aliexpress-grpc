@@ -58,3 +58,18 @@ func InterceptorLogger(l *slog.Logger) grpclog.Logger {
 		l.Log(ctx, slog.Level(lvl), msg, fields...)
 	})
 }
+
+//func (c *Client) IsAdmin(ctx context.Context, token string) (bool, error) {
+//	const op = "grpc.IsBuyer"
+//
+//	resp, err := c.api.IsAdmin(ctx, &authv1.IsLoggedInRequest{
+//		Token: token,
+//	})
+//
+//	if err != nil {
+//		return false, fmt.Errorf("%s:%w", op, err)
+//	}
+//
+//	return resp.IsLoggedIn, nil
+//
+//}
