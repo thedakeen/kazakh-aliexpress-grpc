@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  auth:
+    build:
+      context: ./services/auth
+    env_file:
+      - .env.development
+    ports:
+      - "${AUTH_SERVICE_PORT}:8000"
+  product:
+    build:
+      context: ./services/product
+    env_file:
+      - .env.development
+    ports:
+      - "${PRODUCT_SERVICE_PORT}:8000"

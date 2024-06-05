@@ -6,10 +6,11 @@ import (
 	"auth/internal/lib/logger/handlers/slogpretty"
 	"auth/pkg/storage/mongo"
 	"context"
-	"golang.org/x/exp/slog"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"golang.org/x/exp/slog"
 )
 
 const (
@@ -20,24 +21,25 @@ const (
 
 func main() {
 	cfg := config.MustLoad()
+	port := 8000
 
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting application",
 		slog.String("env", cfg.Env),
 		slog.Any("cfg", cfg),
-		slog.Int("port", cfg.GRPC.Port),
+		slog.Int("port", port),
 	)
 
-	mongo.MustStart(cfg.StoragePath)
+	mongo.MustStart(cfg.MongoURI)
 	defer func(ctx context.Context) {
 		err := mongo.Close(ctx)
 		if err != nil {
-
+			log.Info("Mongo is not closed")
 		}
 	}(context.Background())
 
-	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
+	application := app.New(log, port, cfg.MongoURI, cfg.TokenTTL)
 
 	go application.GRPCSrv.MustRun()
 

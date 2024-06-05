@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"golang.org/x/exp/slog"
 	"os"
 	"os/signal"
 	"product/internal/app"
@@ -10,6 +9,8 @@ import (
 	"product/internal/lib/logger/handlers/slogpretty"
 	"product/pkg/storage/mongo"
 	"syscall"
+
+	"golang.org/x/exp/slog"
 )
 
 const (
@@ -20,16 +21,17 @@ const (
 
 func main() {
 	cfg := config.MustLoad()
+	port := 8000
 
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting application",
 		slog.String("env", cfg.Env),
 		slog.Any("cfg", cfg),
-		slog.Int("port", cfg.GRPC.Port),
+		slog.Int("port", port),
 	)
 
-	mongo.MustStart(cfg.StoragePath)
+	mongo.MustStart(cfg.MongoURI)
 	defer func(ctx context.Context) {
 		err := mongo.Close(ctx)
 		if err != nil {
@@ -37,7 +39,7 @@ func main() {
 		}
 	}(context.Background())
 
-	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath)
+	application := app.New(log, port, cfg.MongoURI)
 
 	go application.GRPCSrv.MustRun()
 
