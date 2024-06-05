@@ -24,7 +24,7 @@ type CategoryProvider interface {
 
 type ProductProvider interface {
 	GetProduct(ctx context.Context, productID string) (*entities.Product, error)
-	GetProductsByCategory(ctx context.Context, categoryName string) ([]entities.Product, error)
+	GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) ([]*entities.Product, error)
 }
 
 var (
@@ -93,4 +93,31 @@ func (a *Product) GetProduct(ctx context.Context, productID string) (*entities.P
 	log.Info("get product successfully")
 
 	return product, nil
+}
+
+func (a *Product) GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) ([]*entities.Product, error) {
+	const op = "product.GetProductsByCategory"
+
+	log := a.log.With(
+		"op", op,
+		"category", categoryID,
+	)
+
+	log.Info("attempting to get products by category")
+
+	products, err := a.productProvider.GetProductsByCategory(ctx, categoryID, limit, offset, sortOrder)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrNoRecordFound):
+			log.Warn("no products found", sl.Err(err))
+			return nil, fmt.Errorf("%s:%w", err, ErrNoProduct)
+		default:
+			a.log.Error("failed to get products", sl.Err(err))
+			return nil, fmt.Errorf("%s:%w", op, err)
+		}
+	}
+
+	log.Info("get products by category successfully")
+
+	return products, nil
 }

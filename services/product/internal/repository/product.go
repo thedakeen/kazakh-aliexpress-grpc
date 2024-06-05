@@ -91,6 +91,54 @@ func (s *Storage) GetProduct(ctx context.Context, productID string) (*entities.P
 
 	return product, nil
 }
-func (s *Storage) GetProductsByCategory(ctx context.Context, categoryName string) ([]entities.Product, error) {
-	return []entities.Product{}, nil
+
+func (s *Storage) GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) ([]*entities.Product, error) {
+	const op = "repository.product.GetProductsByCategory"
+
+	filter := bson.D{
+		{"$match", bson.D{
+			{"categories", bson.D{
+				{"$elemMatch", bson.D{{"_id", categoryID}}},
+			}},
+		}},
+	}
+
+	sortStage := bson.D{}
+	if sortOrder == "desc" {
+		sortStage = bson.D{{"$sort", bson.D{{"item_name", -1}}}}
+	} else {
+		sortStage = bson.D{{"$sort", bson.D{{"item_name", 1}}}}
+	}
+
+	skipStage := bson.D{{"$skip", offset}}
+	limitStage := bson.D{{"$limit", limit}}
+
+	cursor, err := s.database.Collection("items").Aggregate(ctx, mongo.Pipeline{filter, sortStage, skipStage, limitStage})
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, fmt.Errorf("%s:%w", op, storage.ErrNoRecordFound)
+		default:
+			return nil, fmt.Errorf("%s:%w", op, err)
+		}
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			err = storage.ErrNoRecordFound
+			return
+		}
+	}(cursor, ctx)
+
+	var products []*entities.Product
+	if err = cursor.All(ctx, &products); err != nil {
+		return nil, storage.ErrNoRecordFound
+	}
+
+	if len(products) == 0 {
+		return nil, fmt.Errorf("%s: %w", op, storage.ErrNoRecordFound)
+	}
+
+	return products, nil
+
 }
