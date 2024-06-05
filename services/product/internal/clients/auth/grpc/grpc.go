@@ -59,17 +59,17 @@ func InterceptorLogger(l *slog.Logger) grpclog.Logger {
 	})
 }
 
-//func (c *Client) IsAdmin(ctx context.Context, token string) (bool, error) {
-//	const op = "grpc.IsBuyer"
-//
-//	resp, err := c.api.IsAdmin(ctx, &authv1.IsLoggedInRequest{
-//		Token: token,
-//	})
-//
-//	if err != nil {
-//		return false, fmt.Errorf("%s:%w", op, err)
-//	}
-//
-//	return resp.IsLoggedIn, nil
-//
-//}
+func (c *Client) IsTokenValid(ctx context.Context, token string) (bool, error) {
+	const op = "grpc.IsTokenValid"
+
+	resp, err := c.api.IsTokenValid(ctx, &authv1.IsTokenValidRequest{
+		Token: token,
+	})
+
+	if err != nil {
+		return false, fmt.Errorf("%s:%w", op, err)
+	}
+
+	return resp.TokenValid, nil
+
+}

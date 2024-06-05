@@ -6,15 +6,13 @@ option go_package = "kazali.product.v1;productv1";
 
 service Product{
   rpc Categories (CategoryRequest) returns (CategoryResponse);
+
+  rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse);
+  rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse);
+  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+
   rpc ProductsByCategory (ProductsByCategoryRequest) returns (ProductsByCategoryResponse);
   rpc GetProduct (ProductRequest) returns (ProductResponse);
-//  TODO
-//  rpc AddProduct (ProductRequest) returns (ProductResponse);
-//  rpc UpdateProduct (ProductRequest) returns (ProductResponse);
-//  rpc DeleteProduct (ProductRequest) returns (ProductResponse);
-//  rpc CreateCategory (ProductRequest) returns (ProductResponse);
-//  rpc DeleteCategory (ProductRequest) returns (ProductResponse);
-//  rpc UpdateCategory (ProductRequest) returns (ProductResponse);
 }
 
 
@@ -50,6 +48,26 @@ message CategoryRequest{}
 message CategoryResponse{
   repeated Category categories = 1;
 }
+
+
+message CreateCategoryRequest{
+  Category category = 1;
+}
+
+message CreateCategoryResponse{
+  Category category = 1;
+}
+
+message UpdateCategoryRequest{
+  string id = 1;
+  string name = 2;
+}
+
+message DeleteCategoryRequest{
+  string id = 1;
+}
+
+message Delete
 
 /////////////////////////////////////
 
