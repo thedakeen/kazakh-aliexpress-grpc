@@ -11,6 +11,6 @@ type RegisterRequest struct {
 	Name     string `validate:"required,min=2,max=16"`
 }
 
-type IsLoggedInRequest struct {
-	UserID string `validate:"required"`
+type IsTokenValidRequest struct {
+	Token string `validate:"required"`
 }

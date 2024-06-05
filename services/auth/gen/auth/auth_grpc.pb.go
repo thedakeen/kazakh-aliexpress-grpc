@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AuthClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	IsLoggedIn(ctx context.Context, in *IsLoggedInRequest, opts ...grpc.CallOption) (*IsLoggedInResponse, error)
+	IsTokenValid(ctx context.Context, in *IsTokenValidRequest, opts ...grpc.CallOption) (*IsTokenValidResponse, error)
 }
 
 type authClient struct {
@@ -53,9 +53,9 @@ func (c *authClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.C
 	return out, nil
 }
 
-func (c *authClient) IsLoggedIn(ctx context.Context, in *IsLoggedInRequest, opts ...grpc.CallOption) (*IsLoggedInResponse, error) {
-	out := new(IsLoggedInResponse)
-	err := c.cc.Invoke(ctx, "/auth.Auth/IsLoggedIn", in, out, opts...)
+func (c *authClient) IsTokenValid(ctx context.Context, in *IsTokenValidRequest, opts ...grpc.CallOption) (*IsTokenValidResponse, error) {
+	out := new(IsTokenValidResponse)
+	err := c.cc.Invoke(ctx, "/auth.Auth/IsTokenValid", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (c *authClient) IsLoggedIn(ctx context.Context, in *IsLoggedInRequest, opts
 type AuthServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	IsLoggedIn(context.Context, *IsLoggedInRequest) (*IsLoggedInResponse, error)
+	IsTokenValid(context.Context, *IsTokenValidRequest) (*IsTokenValidResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -82,8 +82,8 @@ func (UnimplementedAuthServer) Register(context.Context, *RegisterRequest) (*Reg
 func (UnimplementedAuthServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
-func (UnimplementedAuthServer) IsLoggedIn(context.Context, *IsLoggedInRequest) (*IsLoggedInResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IsLoggedIn not implemented")
+func (UnimplementedAuthServer) IsTokenValid(context.Context, *IsTokenValidRequest) (*IsTokenValidResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsTokenValid not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 
@@ -134,20 +134,20 @@ func _Auth_Login_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_IsLoggedIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IsLoggedInRequest)
+func _Auth_IsTokenValid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsTokenValidRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).IsLoggedIn(ctx, in)
+		return srv.(AuthServer).IsTokenValid(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.Auth/IsLoggedIn",
+		FullMethod: "/auth.Auth/IsTokenValid",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).IsLoggedIn(ctx, req.(*IsLoggedInRequest))
+		return srv.(AuthServer).IsTokenValid(ctx, req.(*IsTokenValidRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -168,8 +168,8 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Auth_Login_Handler,
 		},
 		{
-			MethodName: "IsLoggedIn",
-			Handler:    _Auth_IsLoggedIn_Handler,
+			MethodName: "IsTokenValid",
+			Handler:    _Auth_IsTokenValid_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
