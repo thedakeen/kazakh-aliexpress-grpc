@@ -7,7 +7,7 @@ option go_package = "kazali.product.v1;productv1";
 service Product{
   rpc Categories (CategoryRequest) returns (CategoryResponse);
   rpc ProductsByCategory (ProductsByCategoryRequest) returns (ProductsByCategoryResponse);
-  rpc Product (ProductRequest) returns (ProductResponse);
+  rpc GetProduct (ProductRequest) returns (ProductResponse);
 //  TODO
 //  rpc AddProduct (ProductRequest) returns (ProductResponse);
 //  rpc UpdateProduct (ProductRequest) returns (ProductResponse);
@@ -23,24 +23,24 @@ message Category{
   string name = 2;
 }
 
-message Info {
+message ProductInfo {
   string info_title = 1;
   string info_content = 2;
 }
 
-message Option {
-  string option_title = 1;
-  repeated string option_options = 2;
+message ProductVariant {
+  string variant_title = 1;
+  repeated string variant_options = 2;
 }
 
-message Prod{
+message ProductEntry{
   string id = 1;
   string name = 2;
   float price = 3;
   repeated Category categories = 4;
   repeated string image_urls = 5;
-  repeated Info infos = 6;
-  repeated Option options = 7;
+  repeated ProductInfo infos = 6;
+  repeated ProductVariant options = 7;
 }
 
 /////////////////////////////////////
@@ -60,7 +60,7 @@ message ProductRequest{
 }
 
 message ProductResponse{
-  Prod prod = 1;
+  ProductEntry product = 1;
 }
 
 /////////////////////////////////////
@@ -72,7 +72,7 @@ message ProductsByCategoryRequest{
 }
 
 message ProductsByCategoryResponse{
-  repeated Prod products = 1;
+  repeated ProductEntry products = 1;
 }
 
 /////////////////////////////////////
