@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"product/internal/domain/entities"
@@ -74,8 +75,21 @@ func (s *Storage) GetAllCategories(ctx context.Context) ([]entities.Category, er
 	return categories, nil
 }
 
-func (s *Storage) GetProduct(ctx context.Context, productID string) (entities.Product, error) {
-	return entities.Product{}, nil
+func (s *Storage) GetProduct(ctx context.Context, productID string) (*entities.Product, error) {
+	const op = "repository.product.GetProduct"
+	var product *entities.Product
+
+	objID, err := primitive.ObjectIDFromHex(productID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.database.Collection("items").FindOne(ctx, bson.M{"_id": objID}).Decode(&product)
+	if err != nil {
+		return nil, fmt.Errorf("%s:%w", op, err)
+	}
+
+	return product, nil
 }
 func (s *Storage) GetProductsByCategory(ctx context.Context, categoryName string) ([]entities.Product, error) {
 	return []entities.Product{}, nil

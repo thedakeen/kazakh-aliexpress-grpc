@@ -34,7 +34,7 @@ message ProductVariant {
 message ProductEntry{
   string id = 1;
   string name = 2;
-  float price = 3;
+  double price = 3;
   repeated Category categories = 4;
   repeated string image_urls = 5;
   repeated ProductInfo infos = 6;

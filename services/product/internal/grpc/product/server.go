@@ -13,20 +13,16 @@ import (
 	productv1 "product/gen/product"
 	_ "product/internal/clients/auth/grpc"
 	authgrpc "product/internal/clients/auth/grpc"
-	"product/internal/config"
 	"product/internal/domain/entities"
 	"product/internal/grpc/structs"
 	"product/internal/lib/logger/sl"
-	"product/internal/services/product"
+	productService "product/internal/services/product"
 	"time"
-)
-
-var (
-	cfg = config.MustLoadClient()
 )
 
 type Product interface {
 	Categories(ctx context.Context) ([]entities.Category, error)
+	GetProduct(ctx context.Context, productID string) (*entities.Product, error)
 	// TODO: products
 }
 
@@ -35,7 +31,6 @@ type serverAPI struct {
 	product Product
 	v       *validator.Validate
 	log     *slog.Logger
-	cfg     *config.Config
 }
 
 func Register(gRPC *grpc.Server, product Product, log *slog.Logger) {
@@ -43,7 +38,6 @@ func Register(gRPC *grpc.Server, product Product, log *slog.Logger) {
 		product: product,
 		v:       validator.New(),
 		log:     log,
-		cfg:     cfg,
 	})
 }
 
@@ -124,7 +118,7 @@ func (s *serverAPI) Categories(ctx context.Context, req *productv1.CategoryReque
 	categories, err := s.product.Categories(ctx)
 	if err != nil {
 		switch {
-		case errors.Is(err, product.ErrNoCategories):
+		case errors.Is(err, productService.ErrNoCategories):
 			return nil, status.Error(codes.NotFound, "no categories found")
 		default:
 			return nil, status.Error(codes.Internal, "failed to login")
@@ -142,5 +136,66 @@ func (s *serverAPI) Categories(ctx context.Context, req *productv1.CategoryReque
 
 	return &productv1.CategoryResponse{
 		Categories: categoryPointers,
+	}, nil
+}
+
+func (s *serverAPI) GetProduct(ctx context.Context, req *productv1.ProductRequest) (*productv1.ProductResponse, error) {
+	productRequest := structs.ProductRequest{
+		ProductID: req.Id,
+	}
+
+	err := s.v.Struct(productRequest)
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	product, err := s.product.GetProduct(ctx, req.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, productService.ErrNoProduct):
+			return nil, status.Error(codes.InvalidArgument, "invalid product id")
+		default:
+			return nil, status.Error(codes.Internal, "failed to login")
+		}
+	}
+
+	var infosPointers []*productv1.ProductInfo
+	for _, info := range product.Infos {
+		infosPointers = append(infosPointers, &productv1.ProductInfo{
+			InfoContent: info.Content,
+			InfoTitle:   info.Title,
+		})
+	}
+
+	var variantPointers []*productv1.ProductVariant
+	for _, variant := range product.Variants {
+		variantPointers = append(variantPointers, &productv1.ProductVariant{
+			VariantTitle:   variant.Title,
+			VariantOptions: variant.Variants,
+		})
+	}
+
+	var categoryPointers []*productv1.Category
+	for _, category := range product.Categories {
+		categoryPointer := &productv1.Category{
+			Id:   category.ID.Hex(),
+			Name: category.CategoryName,
+		}
+		categoryPointers = append(categoryPointers, categoryPointer)
+	}
+
+	prod := &productv1.ProductEntry{
+		Id:         product.ID.Hex(),
+		Name:       product.ProductName,
+		Price:      product.Price,
+		Infos:      infosPointers,
+		ImageUrls:  product.Images,
+		Options:    variantPointers,
+		Categories: categoryPointers,
+	}
+
+	return &productv1.ProductResponse{
+		Product: prod,
 	}, nil
 }
