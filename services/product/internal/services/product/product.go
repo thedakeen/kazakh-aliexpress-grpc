@@ -23,12 +23,13 @@ type CategoryProvider interface {
 }
 
 type ProductProvider interface {
-	GetProduct(ctx context.Context, productID string) (entities.Product, error)
+	GetProduct(ctx context.Context, productID string) (*entities.Product, error)
 	GetProductsByCategory(ctx context.Context, categoryName string) ([]entities.Product, error)
 }
 
 var (
 	ErrNoCategories = errors.New("no categories found")
+	ErrNoProduct    = errors.New("no product found")
 )
 
 func New(
@@ -66,4 +67,30 @@ func (a *Product) Categories(ctx context.Context) ([]entities.Category, error) {
 	log.Info("get all categories successfully")
 
 	return categories, nil
+}
+
+func (a *Product) GetProduct(ctx context.Context, productID string) (*entities.Product, error) {
+	const op = "product.Categories"
+
+	log := a.log.With(
+		"op", op,
+	)
+
+	log.Info("attempting to get product")
+
+	product, err := a.productProvider.GetProduct(ctx, productID)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrNoRecordFound):
+			log.Warn("no product found", sl.Err(err))
+			return nil, fmt.Errorf("%s:%w", err, ErrNoProduct)
+		default:
+			a.log.Error("failed to get product", sl.Err(err))
+			return nil, fmt.Errorf("%s:%w", op, err)
+		}
+	}
+
+	log.Info("get product successfully")
+
+	return product, nil
 }
