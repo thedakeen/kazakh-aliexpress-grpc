@@ -3,7 +3,7 @@ storage_path: "mongodb+srv://thedakeen:bYOC9DgDKO1zBIfR@cluster0.jbvthwy.mongodb
 mongodb:
   uri: "mongodb+srv://thedakeen:bYOC9DgDKO1zBIfR@cluster0.jbvthwy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 grpc:
-  port: 6000
+  port: 50010
   timeout: 10h
 clients:
   address: "localhost:5000"
