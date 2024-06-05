@@ -7,5 +7,5 @@ grpc:
   timeout: 10h
 clients:
   address: "localhost:5000"
-  timeout: 1m
+  timeout: 4s
   retries_count: 3

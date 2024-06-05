@@ -72,8 +72,8 @@ func (s *Storage) GetUser(ctx context.Context, email string) (entities.User, err
 	return user, nil
 }
 
-func (s *Storage) IsAdmin(ctx context.Context, userID string) (bool, error) {
-	const op = "repository.user.IsAdmin"
+func (s *Storage) IsLoggedIn(ctx context.Context, userID string) (bool, error) {
+	const op = "repository.user.IsLoggedIn"
 
 	return false, nil
 }

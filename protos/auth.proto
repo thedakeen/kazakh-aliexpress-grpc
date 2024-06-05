@@ -7,7 +7,7 @@ option go_package = "kazali.auth.v1.;authv1";
 service Auth{
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
-  rpc IsAdmin (IsAdminRequest) returns (IsAdminResponse);
+  rpc IsLoggedIn (IsLoggedInRequest) returns (IsLoggedInResponse);
  }
 
  message RegisterRequest{
@@ -29,11 +29,11 @@ service Auth{
   string token = 1;
  }
 
- message IsAdminRequest{
-  string user_id = 1;
+ message IsLoggedInRequest{
+  string token = 1;
  }
 
- message IsAdminResponse{
-  bool is_admin = 1;
+ message IsLoggedInResponse{
+  bool is_logged_in = 1;
  }
 

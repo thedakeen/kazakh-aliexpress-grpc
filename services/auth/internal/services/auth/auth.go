@@ -26,7 +26,7 @@ type UserSaver interface {
 
 type UserProvider interface {
 	GetUser(ctx context.Context, email string) (entities.User, error)
-	IsAdmin(ctx context.Context, userID string) (bool, error)
+	IsLoggedIn(ctx context.Context, userID string) (bool, error)
 }
 
 var (
@@ -113,7 +113,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, name string, p
 	return id, nil
 }
 
-func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
+func (a *Auth) IsLoggedIn(ctx context.Context, userID string) (bool, error) {
 	const op = "auth.IsAdmin"
 
 	log := a.log.With(
@@ -121,14 +121,14 @@ func (a *Auth) IsAdmin(ctx context.Context, userID string) (bool, error) {
 		slog.String("user_id", userID),
 	)
 
-	log.Info("checking if user is admin")
+	log.Info("checking if user is logged in")
 
-	isAdmin, err := a.userProvider.IsAdmin(ctx, userID)
+	isLoggedIn, err := a.userProvider.IsLoggedIn(ctx, userID)
 	if err != nil {
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
-	log.Info("checked if user is admin", slog.Bool("is_admin", isAdmin))
+	log.Info("checked if user is logged in", slog.Bool("is_logged_in", isLoggedIn))
 
-	return isAdmin, nil
+	return isLoggedIn, nil
 }
