@@ -8,8 +8,8 @@ service Product{
   rpc Categories (CategoryRequest) returns (CategoryResponse);
 
   rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse);
-  rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse);
-  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+//  rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse);
+//  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
 
   rpc ProductsByCategory (ProductsByCategoryRequest) returns (ProductsByCategoryResponse);
   rpc GetProduct (ProductRequest) returns (ProductResponse);
@@ -67,7 +67,7 @@ message DeleteCategoryRequest{
   string id = 1;
 }
 
-message Delete
+message Delete{}
 
 /////////////////////////////////////
 
