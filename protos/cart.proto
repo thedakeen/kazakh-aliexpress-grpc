@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package cart;
+
+import "product.proto";
+
+service Cart {
+  rpc GetCart (GetCartRequest) returns (GetCartResponse);
+  rpc AddToCart (AddToCartRequest) returns (AddToCartResponse);
+  rpc DeleteFromCart (DeleteFromCartRequest) returns (DeleteFromCartResponse);
+  rpc ClearCart (ClearCartRequest) returns (ClearCartResponse);
+  rpc UpdateCart (UpdateCartRequest) returns (UpdateCartResponse);
+}
+
+
+message GetCartRequest {
+}
+
+message GetCartResponse {
+  repeated product.ProductEntry products = 1;
+}
+
+message AddToCartRequest {
+  string product_id = 2;
+  int32 quantity = 3;
+  // другие поля запроса, если они есть
+}
+
+message AddToCartResponse {
+  // поля ответа
+}
+
+message DeleteFromCartRequest {
+  string product_id = 2;
+  // другие поля запроса, если они есть
+}
+
+message DeleteFromCartResponse {
+  // поля ответа
+}
+
+message ClearCartRequest {
+  // другие поля запроса, если они есть
+}
+
+message ClearCartResponse {
+  // поля ответа
+}
+
+message UpdateCartRequest {
+  string product_id = 2;
+  int32 quantity = 3;
+  // другие поля запроса, если они есть
+}
+
+message UpdateCartResponse {
+  // поля ответа
+}
