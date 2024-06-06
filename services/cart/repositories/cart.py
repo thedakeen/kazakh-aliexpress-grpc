@@ -1,6 +1,9 @@
+import logging
 from pymongo.database import Database
 from pymongo.collection import Collection
-from pymongo.results import InsertOneResult, UpdateResult
+
+from models import CartItemEntry
+from models import CartItem
 
 
 class CartRepository:
@@ -11,15 +14,68 @@ class CartRepository:
     ):
         self.collection: Collection = db.get_collection(collection)
 
-    def get(self, user_id: str):
+    def get(self, email: str) -> list[CartItemEntry] | None:
         projection = {
             "_id": 0,
             "cart": 1,
         }
-        return self.collection.find_one(
-            {"_id": user_id},
+        result = self.collection.find_one(
+            {"email": email},
             projection=projection,
         )
+        logging.info(f"find cart result for email: {email}. Result: {result}")
+        if result:
+            return [
+                CartItemEntry.model_validate(**item) for item in result.get("cart", [])
+            ]
+        return None
+
+    def add(
+        self,
+        email: str,
+        product_id: str,
+        quantity: int,
+    ) -> bool:
+        try:
+            # Check if the product already exists in the user's cart
+            user = self.collection.find_one(
+                {"email": email, "cart.item_id": product_id}
+            )
+
+            if user:
+                # If the product exists, increment the quantity
+                self.collection.update_one(
+                    {"email": email, "cart.item_id": product_id},
+                    {"$inc": {"cart.$.quantity": quantity}},
+                )
+            else:
+                # If the product does not exist, add the product to the cart
+                self.collection.update_one(
+                    {"email": email},
+                    {"$push": {"cart": {"item_id": product_id, "quantity": quantity}}},
+                )
+
+            return True
+        except Exception as e:
+            logging.error(f"Failed to add item to cart: {e}")
+            return False
+
+    # def add(
+    #     self,
+    #     email: str,
+    #     product: CartItem,
+    #     quantity: int,
+    # ) -> bool:
+    #     try:
+    #         self.collection.update_one(
+    #             {"email": email, "cart.product_id": product_id},
+    #             {"$inc": {"cart.$.quantity": quantity}},
+    #             upsert=True,
+    #         )
+    #         return True
+    #     except Exception as e:
+    #         logging.error(f"Failed to add item to cart: {e}")
+    #         return False
 
     # async def create_chat(
     #     self,

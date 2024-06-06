@@ -8,8 +8,11 @@ class CommonSettings(BaseSettings):
     environment: str = "dev"
 
     mongo_uri: str
-    auth_service_port: int
+
     auth_service_host: str
+    product_service_host: str
+
+    auth_service_port: int
     product_service_port: int
     cart_service_port: int
 
