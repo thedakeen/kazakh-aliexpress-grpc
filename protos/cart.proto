@@ -16,8 +16,13 @@ service Cart {
 message GetCartRequest {
 }
 
+message ProductCartEntry {
+  int32 quantity = 1;
+  product.ProductEntry item = 2;
+}
+
 message GetCartResponse {
-  repeated product.ProductEntry products = 1;
+  repeated ProductCartEntry cart = 1;
 }
 
 message AddToCartRequest {

@@ -1,23 +1,34 @@
-# import uuid
-# from typing import Optional
-# from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field
 
-# class Book(BaseModel):
-#     id: str = Field(default_factory=uuid.uuid4, alias="_id")
-#     title: str = Field(...)
-#     author: str = Field(...)
-#     synopsis: str = Field(...)
 
-#     class Config:
-#         allow_population_by_field_name = True
-#         schema_extra = {
-#             "example": {
-#                 "_id": "066de609-b04a-4b30-b46c-32537c7f1f6e",
-#                 "title": "Don Quixote",
-#                 "author": "Miguel de Cervantes",
-#                 "synopsis": "..."
-#             }
-#         }
+class Category(BaseModel):
+    id: str = Field(alias="_id")
+    category_name: str
+
+
+class Info(BaseModel):
+    info_title: str
+    info_content: str
+
+
+class Option(BaseModel):
+    option_title: str
+    option_options: list[str]
+
+
+class CartItem(BaseModel):
+    id: str = Field(alias="_id")
+    price: float
+    item_name: str
+    categories: list[Category]
+    item_photos: list[str] | None = None
+    info: list[Info]
+    options: list[Option] | None = None
+
+
+class CartItemEntry(BaseModel):
+    quantity: int  # Ensures the quantity is at least 1
+    item: CartItem
 
 
 # class BookUpdate(BaseModel):

@@ -26,7 +26,10 @@ services:
       context: ./services/cart
     environment:
       - AUTH_SERVICE_HOST=auth
+      - PRODUCT_SERVICE_HOST=product
       - AUTH_SERVICE_PORT=50051
+      - PYTHONUNBUFFERED=1  # Обеспечивает немедленный вывод логов
+
     env_file:
       - .env.development
     ports:
