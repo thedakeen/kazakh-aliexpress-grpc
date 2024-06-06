@@ -158,7 +158,7 @@ func (a *Product) UpdateCategory(ctx context.Context, categoryID string, categor
 		switch {
 		case errors.Is(err, storage.ErrNoRecordFound):
 			log.Warn("no category found", sl.Err(err))
-			return nil, fmt.Errorf("%s:%w", err, ErrNoCategories)
+			return nil, fmt.Errorf("%s:%w", op, ErrNoCategories)
 		default:
 			a.log.Error("failed to update category", sl.Err(err))
 			return nil, fmt.Errorf("%s:%w", op, err)
