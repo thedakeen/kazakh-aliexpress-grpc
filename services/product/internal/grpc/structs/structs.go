@@ -12,3 +12,16 @@ type ProductsByCategoryRequest struct {
 	Offset     int64  `validate:"required,min=1"`
 	SortOrder  string
 }
+
+type CreateCategoryRequest struct {
+	CategoryName string `validate:"required"`
+}
+
+type UpdateCategoryRequest struct {
+	CategoryID   string `validate:"required"`
+	CategoryName string `validate:"required"`
+}
+
+type DeleteCategoryRequest struct {
+	CategoryID string `validate:"required"`
+}

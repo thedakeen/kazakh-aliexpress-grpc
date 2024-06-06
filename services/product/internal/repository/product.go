@@ -142,3 +142,67 @@ func (s *Storage) GetProductsByCategory(ctx context.Context, categoryID string, 
 	return products, nil
 
 }
+
+//////////////////////// ADMIN //////////////////////////////
+
+func (s *Storage) CreateCategory(ctx context.Context, category *entities.Category) (*entities.Category, error) {
+	const op = "repository.product.CreateCategory"
+
+	existingUser := s.database.Collection("categories").FindOne(ctx, bson.M{"category_name": category.CategoryName})
+	if existingUser.Err() == nil {
+		return nil, fmt.Errorf("%s: %w", op, storage.ErrCategoryExists)
+	}
+
+	_, err := s.database.Collection("categories").InsertOne(ctx, category)
+	if err != nil {
+		return nil, fmt.Errorf("%s:%w", op, err)
+	}
+
+	return category, nil
+}
+
+func (s *Storage) UpdateCategory(ctx context.Context, categoryID string, categoryName string) (*entities.Category, error) {
+	const op = "repository.category.UpdateCategory"
+
+	filter := bson.D{{Key: "_id", Value: categoryID}}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "category_name", Value: categoryName},
+		}},
+	}
+
+	var updatedCategory entities.Category
+	err := s.database.Collection("categories").FindOneAndUpdate(ctx, filter, update).Decode(&updatedCategory)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, fmt.Errorf("%s:%w", op, storage.ErrNoRecordFound)
+		default:
+			return nil, fmt.Errorf("%s:%w", op, err)
+		}
+	}
+
+	return &updatedCategory, nil
+}
+
+func (s *Storage) DeleteCategory(ctx context.Context, categoryID string) (string, error) {
+	const op = "repository.category.DeleteCategory"
+
+	filter := bson.D{{Key: "_id", Value: categoryID}}
+	result, err := s.database.Collection("categories").DeleteOne(ctx, filter)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return "", fmt.Errorf("%s:%w", op, storage.ErrNoRecordFound)
+		default:
+			return "", fmt.Errorf("%s:%w", op, err)
+		}
+	}
+
+	if result.DeletedCount == 0 {
+		return "", fmt.Errorf("%s:%w", op, storage.ErrNoRecordFound)
+	}
+
+	return "deleted successfully", nil
+
+}

@@ -20,6 +20,9 @@ type Product struct {
 
 type CategoryProvider interface {
 	GetAllCategories(ctx context.Context) ([]entities.Category, error)
+	CreateCategory(ctx context.Context, category *entities.Category) (*entities.Category, error)
+	UpdateCategory(ctx context.Context, categoryID string, categoryName string) (*entities.Category, error)
+	DeleteCategory(ctx context.Context, categoryID string) (string, error)
 }
 
 type ProductProvider interface {
@@ -120,4 +123,70 @@ func (a *Product) GetProductsByCategory(ctx context.Context, categoryID string, 
 	log.Info("get products by category successfully")
 
 	return products, nil
+}
+
+func (a *Product) CreateCategory(ctx context.Context, category *entities.Category) (*entities.Category, error) {
+	const op = "product.CreateCategory"
+
+	log := a.log.With(
+		"op", op,
+	)
+
+	log.Info("attempting to create new category")
+
+	category, err := a.categoryProvider.CreateCategory(ctx, category)
+	if err != nil {
+		return nil, fmt.Errorf("%s:%w", op, err)
+	}
+
+	log.Info("new category created successfully")
+
+	return category, nil
+}
+
+func (a *Product) UpdateCategory(ctx context.Context, categoryID string, categoryName string) (*entities.Category, error) {
+	const op = "product.UpdateCategory"
+
+	log := a.log.With(
+		"op", op,
+	)
+
+	log.Info("attempting to update category")
+
+	category, err := a.categoryProvider.UpdateCategory(ctx, categoryID, categoryName)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrNoRecordFound):
+			log.Warn("no category found", sl.Err(err))
+			return nil, fmt.Errorf("%s:%w", err, ErrNoCategories)
+		default:
+			a.log.Error("failed to update category", sl.Err(err))
+			return nil, fmt.Errorf("%s:%w", op, err)
+		}
+	}
+
+	log.Info("category updated successfully")
+
+	return category, nil
+}
+
+func (a *Product) DeleteCategory(ctx context.Context, categoryID string) (string, error) {
+	const op = "product.DeleteCategory"
+
+	log := a.log.With(
+		"op", op,
+	)
+
+	log.Info("attempting to delete category")
+
+	resp, err := a.categoryProvider.DeleteCategory(ctx, categoryID)
+	if err != nil {
+		log.Error("failed to delete category", sl.Err(err))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("category deleted successfully")
+
+	return resp, nil
+
 }
