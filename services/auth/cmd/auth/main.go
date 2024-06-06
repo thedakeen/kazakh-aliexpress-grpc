@@ -21,7 +21,7 @@ const (
 
 func main() {
 	cfg := config.MustLoad()
-	port := 8000
+	port := 50051
 
 	log := setupLogger(cfg.Env)
 

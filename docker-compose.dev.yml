@@ -7,7 +7,7 @@ services:
     env_file:
       - .env.development
     ports:
-      - "${AUTH_SERVICE_PORT}:8000"
+      - "${AUTH_SERVICE_PORT}:50051"
     networks:
       - microservices
 
@@ -17,7 +17,7 @@ services:
     env_file:
       - .env.development
     ports:
-      - "${PRODUCT_SERVICE_PORT}:8000"
+      - "${PRODUCT_SERVICE_PORT}:50052"
     networks:
       - microservices
 
@@ -26,10 +26,11 @@ services:
       context: ./services/cart
     environment:
       - AUTH_SERVICE_HOST=auth
+      - AUTH_SERVICE_PORT=50051
     env_file:
       - .env.development
     ports:
-      - "${CART_SERVICE_PORT}:8000"
+      - "${CART_SERVICE_PORT}:50053"
     networks:
       - microservices
 
