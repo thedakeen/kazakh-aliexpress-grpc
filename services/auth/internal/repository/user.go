@@ -25,7 +25,7 @@ func New(storagePath string) (*Storage, error) {
 		return nil, fmt.Errorf("%s:%w", op, err)
 	}
 
-	database := client.Database("kazakh-aliexpress")
+	database := client.Database("Qazaq-Aliexpress")
 	return &Storage{client: client, database: database}, nil
 }
 
