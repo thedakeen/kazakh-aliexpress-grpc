@@ -18,6 +18,7 @@ import (
 	"product/internal/grpc/structs"
 	"product/internal/lib/logger/sl"
 	productService "product/internal/services/product"
+	storage "product/pkg/storage"
 	"strings"
 	"time"
 )
@@ -64,7 +65,7 @@ func (s *serverAPI) authorizeAdmin(ctx context.Context) (jwt.MapClaims, error) {
 	authClient, err := authgrpc.New(
 		context.Background(),
 		s.log,
-		"auth:50000",
+		"auth:50051",
 		duration,
 		3,
 	)
@@ -113,7 +114,7 @@ func (s *serverAPI) Categories(ctx context.Context, req *productv1.CategoryReque
 		case errors.Is(err, productService.ErrNoCategories):
 			return nil, status.Error(codes.NotFound, "no categories found")
 		default:
-			return nil, status.Error(codes.Internal, "failed to login")
+			return nil, status.Error(codes.Internal, "internal server error")
 		}
 	}
 
@@ -148,7 +149,7 @@ func (s *serverAPI) GetProduct(ctx context.Context, req *productv1.ProductReques
 		case errors.Is(err, productService.ErrNoProduct):
 			return nil, status.Error(codes.InvalidArgument, "invalid product id")
 		default:
-			return nil, status.Error(codes.Internal, "failed to get product")
+			return nil, status.Error(codes.Internal, "internal server error")
 		}
 	}
 
@@ -219,7 +220,7 @@ func (s *serverAPI) GetProductsByCategory(ctx context.Context, req *productv1.Pr
 		case errors.Is(err, productService.ErrNoProduct):
 			return nil, status.Error(codes.InvalidArgument, "invalid category id")
 		default:
-			return nil, status.Error(codes.Internal, "failed to get products by category id")
+			return nil, status.Error(codes.Internal, "internal server error")
 		}
 	}
 
@@ -240,16 +241,16 @@ func (s *serverAPI) GetProductsByCategory(ctx context.Context, req *productv1.Pr
 }
 
 func (s *serverAPI) CreateCategory(ctx context.Context, req *productv1.CreateCategoryRequest) (*productv1.CreateCategoryResponse, error) {
-	//_, err := s.authorizeAdmin(ctx)
-	//if err != nil {
-	//	return nil, err
-	//}
+	_, err := s.authorizeAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	createCategoryRequest := structs.CreateCategoryRequest{
 		CategoryName: req.Category.Name,
 	}
 
-	err := s.v.Struct(createCategoryRequest)
+	err = s.v.Struct(createCategoryRequest)
 
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -261,7 +262,12 @@ func (s *serverAPI) CreateCategory(ctx context.Context, req *productv1.CreateCat
 
 	createdCategory, err := s.product.CreateCategory(ctx, &newCategory)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to create category")
+		switch {
+		case errors.Is(err, storage.ErrCategoryExists):
+			return nil, status.Error(codes.AlreadyExists, "category already exists")
+		default:
+			return nil, status.Error(codes.Internal, "internal server error")
+		}
 	}
 
 	cat := &productv1.Category{
@@ -275,17 +281,17 @@ func (s *serverAPI) CreateCategory(ctx context.Context, req *productv1.CreateCat
 }
 
 func (s *serverAPI) UpdateCategory(ctx context.Context, req *productv1.UpdateCategoryRequest) (*productv1.UpdateCategoryResponse, error) {
-	//_, err := s.authorizeAdmin(ctx)
-	//if err != nil {
-	//	return nil, err
-	//}
+	_, err := s.authorizeAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	updateCategoryRequest := structs.UpdateCategoryRequest{
 		CategoryName: req.Name,
 		CategoryID:   req.Id,
 	}
 
-	err := s.v.Struct(updateCategoryRequest)
+	err = s.v.Struct(updateCategoryRequest)
 
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -293,7 +299,12 @@ func (s *serverAPI) UpdateCategory(ctx context.Context, req *productv1.UpdateCat
 
 	updatedCategory, err := s.product.UpdateCategory(ctx, req.GetId(), req.GetName())
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to update category")
+		switch {
+		case errors.Is(err, storage.ErrNoRecordFound):
+			return nil, status.Error(codes.NotFound, "no category found")
+		default:
+			return nil, status.Error(codes.Internal, "internal server error")
+		}
 	}
 
 	category := &productv1.Category{
@@ -308,15 +319,25 @@ func (s *serverAPI) UpdateCategory(ctx context.Context, req *productv1.UpdateCat
 }
 
 func (s *serverAPI) DeleteCategory(ctx context.Context, req *productv1.DeleteCategoryRequest) (*productv1.DeleteCategoryResponse, error) {
+	_, err := s.authorizeAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	deleteCategoryRequest := structs.DeleteCategoryRequest{
 		CategoryID: req.Id,
 	}
 
-	err := s.v.Struct(deleteCategoryRequest)
+	err = s.v.Struct(deleteCategoryRequest)
 
 	resp, err := s.product.DeleteCategory(ctx, req.GetId())
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to delete category")
+		switch {
+		case errors.Is(err, storage.ErrNoRecordFound):
+			return nil, status.Error(codes.NotFound, "no category found")
+		default:
+			return nil, status.Error(codes.Internal, "internal server error")
+		}
 	}
 
 	return &productv1.DeleteCategoryResponse{
