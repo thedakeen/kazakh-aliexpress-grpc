@@ -56,48 +56,28 @@ class CartServicer(cart_pb2_grpc.CartServicer):
         metadata = dict(context.invocation_metadata())
         token = metadata.get("authorization", "")[7:]
 
-        email = self.validate_user_token(token=token)
+        try:
+            email = self.validate_user_token(token=token)
+            if not email:
+                logging.error("Invalid token provided")
+                return cart_pb2.GetCartResponse(cart=[])
+        except Exception as e:
+            logging.error(f"Token validation failed: {e}")
+            return cart_pb2.GetCartResponse(cart=[])
 
         cart_items = self.__cart_repository.get(email=email)
         if cart_items:
             product_cart_entries = [
                 cart_pb2.ProductCartEntry(
-                    quantity=item.quantity,
-                    item=cart_pb2.ProductEntry(
-                        id=item.item.id,
-                        price=item.item.price,
-                        item_name=item.item.item_name,
-                        categories=[
-                            cart_pb2.Category(
-                                id=category.id,
-                                category_name=category.category_name,
-                            )
-                            for category in item.item.categories
-                        ],
-                        item_photos=item.item.item_photos,
-                        reviews=item.item.reviews,
-                        info=[
-                            cart_pb2.Info(
-                                info_title=info.info_title,
-                                info_content=info.info_content,
-                            )
-                            for info in item.item.info
-                        ],
-                        options=(
-                            [
-                                cart_pb2.Option(
-                                    option_title=option.option_title,
-                                    option_options=option.option_options,
-                                )
-                                for option in item.item.options
-                            ]
-                            if item.item.options
-                            else None
-                        ),
-                    ),
+                    quantity=int(item.quantity),
+                    item_id=str(item.item_id),
                 )
                 for item in cart_items
             ]
+            logging.info(f"GetCart entries: {product_cart_entries}")
+            logging.info(
+                f"GetCart response: {cart_pb2.GetCartResponse(cart=product_cart_entries)}"
+            )
             return cart_pb2.GetCartResponse(cart=product_cart_entries)
         return cart_pb2.GetCartResponse(cart=[])
 
@@ -110,9 +90,10 @@ class CartServicer(cart_pb2_grpc.CartServicer):
         product_id = request.product_id
         quantity = request.quantity
 
-        product = self.get_product(item_id=product_id)
-        logging.info(product)
-        if not product:
+        try:
+            product = self.get_product(item_id=product_id)
+            logging.info(product)
+        except grpc.RpcError as rpc_error:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("Failed to add item to cart. Item does not exists")
             return cart_pb2.AddToCartResponse()
@@ -120,6 +101,8 @@ class CartServicer(cart_pb2_grpc.CartServicer):
         success = self.__cart_repository.add(email, product_id, quantity)
 
         if success:
+            context.set_code(grpc.StatusCode.OK)
+            context.set_details("Item added to cart")
             return cart_pb2.AddToCartResponse()
         else:
             context.set_code(grpc.StatusCode.INTERNAL)

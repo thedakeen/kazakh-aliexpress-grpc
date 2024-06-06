@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"product/internal/domain/entities"
+	"product/pkg/storage"
+	mongodb "product/pkg/storage/mongo"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"product/internal/domain/entities"
-	"product/pkg/storage"
-	mongodb "product/pkg/storage/mongo"
 )
 
 type Storage struct {
@@ -86,9 +87,13 @@ func (s *Storage) GetProduct(ctx context.Context, productID string) (*entities.P
 
 	err = s.database.Collection("items").FindOne(ctx, bson.M{"_id": objID}).Decode(&product)
 	if err != nil {
-		return nil, fmt.Errorf("%s:%w", op, err)
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, fmt.Errorf("%s:%w", op, storage.ErrNoRecordFound)
+		default:
+			return nil, fmt.Errorf("%s:%w", op, err)
+		}
 	}
-
 	return product, nil
 }
 

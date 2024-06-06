@@ -3,7 +3,6 @@ from pymongo.database import Database
 from pymongo.collection import Collection
 
 from models import CartItemEntry
-from models import CartItem
 
 
 class CartRepository:
@@ -26,7 +25,7 @@ class CartRepository:
         logging.info(f"find cart result for email: {email}. Result: {result}")
         if result:
             return [
-                CartItemEntry.model_validate(**item) for item in result.get("cart", [])
+                CartItemEntry(**item) for item in result.get("cart", [])
             ]
         return None
 

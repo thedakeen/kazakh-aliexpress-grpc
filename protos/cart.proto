@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package cart;
 
-import "product.proto";
 
 service Cart {
   rpc GetCart (GetCartRequest) returns (GetCartResponse);
@@ -18,7 +17,7 @@ message GetCartRequest {
 
 message ProductCartEntry {
   int32 quantity = 1;
-  product.ProductEntry item = 2;
+  string item_id = 2;
 }
 
 message GetCartResponse {
@@ -28,36 +27,28 @@ message GetCartResponse {
 message AddToCartRequest {
   string product_id = 2;
   int32 quantity = 3;
-  // другие поля запроса, если они есть
 }
 
 message AddToCartResponse {
-  // поля ответа
 }
 
 message DeleteFromCartRequest {
   string product_id = 2;
-  // другие поля запроса, если они есть
 }
 
 message DeleteFromCartResponse {
-  // поля ответа
 }
 
 message ClearCartRequest {
-  // другие поля запроса, если они есть
 }
 
 message ClearCartResponse {
-  // поля ответа
 }
 
 message UpdateCartRequest {
   string product_id = 2;
   int32 quantity = 3;
-  // другие поля запроса, если они есть
 }
 
 message UpdateCartResponse {
-  // поля ответа
 }
