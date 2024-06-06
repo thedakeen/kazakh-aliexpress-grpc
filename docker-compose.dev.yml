@@ -8,6 +8,9 @@ services:
       - .env.development
     ports:
       - "${AUTH_SERVICE_PORT}:8000"
+    networks:
+      - microservices
+
   product:
     build:
       context: ./services/product
@@ -15,3 +18,20 @@ services:
       - .env.development
     ports:
       - "${PRODUCT_SERVICE_PORT}:8000"
+    networks:
+      - microservices
+
+  cart:
+    build:
+      context: ./services/cart
+    environment:
+      - AUTH_SERVICE_HOST=auth
+    env_file:
+      - .env.development
+    ports:
+      - "${CART_SERVICE_PORT}:8000"
+    networks:
+      - microservices
+
+networks:
+  microservices:

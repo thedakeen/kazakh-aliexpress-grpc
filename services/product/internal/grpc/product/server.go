@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/exp/slog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,7 +26,9 @@ type Product interface {
 	Categories(ctx context.Context) ([]entities.Category, error)
 	GetProduct(ctx context.Context, productID string) (*entities.Product, error)
 	GetProductsByCategory(ctx context.Context, categoryID string, limit int64, offset int64, sortOrder string) ([]*entities.Product, error)
-	// TODO: products
+	CreateCategory(ctx context.Context, category *entities.Category) (*entities.Category, error)
+	UpdateCategory(ctx context.Context, categoryID string, categoryName string) (*entities.Category, error)
+	DeleteCategory(ctx context.Context, categoryID string) (string, error)
 }
 
 type serverAPI struct {
@@ -43,43 +46,7 @@ func Register(gRPC *grpc.Server, product Product, log *slog.Logger) {
 	})
 }
 
-//var (
-//	ErrNoTokenInRequest = errors.New("no token in request")
-//	JWTSecret           = []byte("s7Ndh+pPznbHbS*+9Pk8qGWhTzbpa@tw")
-//)
-
-//func ExtractAndVerifyToken(ctx context.Context) (*jwt.Token, error) {
-//	md, ok := metadata.FromIncomingContext(ctx)
-//	if !ok {
-//		return nil, ErrNoTokenInRequest
-//	}
-//
-//	authHeader, ok := md["authorization"]
-//	if !ok || len(authHeader) == 0 {
-//		return nil, ErrNoTokenInRequest
-//	}
-//
-//	tokenString := authHeader[0][7:] // "Bearer " prefix length is 7
-//	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-//			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-//		}
-//		return JWTSecret, nil
-//	})
-//
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if !token.Valid {
-//		return nil, errors.New("invalid token")
-//	}
-//
-//	return token, nil
-//}
-
-func (s *serverAPI) Categories(ctx context.Context, req *productv1.CategoryRequest) (*productv1.CategoryResponse, error) {
-
+func (s *serverAPI) authorizeAdmin(ctx context.Context) (jwt.MapClaims, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "no metadata in request")
@@ -90,28 +57,51 @@ func (s *serverAPI) Categories(ctx context.Context, req *productv1.CategoryReque
 		return nil, status.Error(codes.Unauthenticated, "no authorization header")
 	}
 
-	token := authHeader[0][7:]
+	tokenString := strings.TrimPrefix(authHeader[0], "Bearer ")
+
+	duration := 10 * time.Second
 
 	authClient, err := authgrpc.New(
 		context.Background(),
 		s.log,
-		"localhost:5000",
-		time.Duration(400000),
-		3)
+		"auth:50000",
+		duration,
+		3,
+	)
 
 	if err != nil {
 		s.log.Error("failed to init auth client", sl.Err(err))
 		os.Exit(1)
 	}
 
-	_, err = authClient.IsTokenValid(context.Background(), token)
+	_, err = authClient.IsTokenValid(context.Background(), tokenString)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
 
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "invalid token claims")
+	}
+
+	role, ok := claims["role"].(string)
+	if !ok || role != "admin" {
+		return nil, status.Error(codes.PermissionDenied, "no access for this resource")
+	}
+
+	return claims, nil
+}
+
+func (s *serverAPI) Categories(ctx context.Context, req *productv1.CategoryRequest) (*productv1.CategoryResponse, error) {
+
 	categoryRequest := structs.CategoryRequest{}
 
-	err = s.v.Struct(categoryRequest)
+	err := s.v.Struct(categoryRequest)
 
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -246,5 +236,90 @@ func (s *serverAPI) GetProductsByCategory(ctx context.Context, req *productv1.Pr
 
 	return &productv1.ProductsByCategoryResponse{
 		Products: productsPointers,
+	}, nil
+}
+
+func (s *serverAPI) CreateCategory(ctx context.Context, req *productv1.CreateCategoryRequest) (*productv1.CreateCategoryResponse, error) {
+	//_, err := s.authorizeAdmin(ctx)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	createCategoryRequest := structs.CreateCategoryRequest{
+		CategoryName: req.Category.Name,
+	}
+
+	err := s.v.Struct(createCategoryRequest)
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	newCategory := entities.Category{
+		CategoryName: req.Category.GetName(),
+	}
+
+	createdCategory, err := s.product.CreateCategory(ctx, &newCategory)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to create category")
+	}
+
+	cat := &productv1.Category{
+		Name: createdCategory.CategoryName,
+	}
+
+	return &productv1.CreateCategoryResponse{
+		Category: cat,
+	}, nil
+
+}
+
+func (s *serverAPI) UpdateCategory(ctx context.Context, req *productv1.UpdateCategoryRequest) (*productv1.UpdateCategoryResponse, error) {
+	//_, err := s.authorizeAdmin(ctx)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	updateCategoryRequest := structs.UpdateCategoryRequest{
+		CategoryName: req.Name,
+		CategoryID:   req.Id,
+	}
+
+	err := s.v.Struct(updateCategoryRequest)
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	updatedCategory, err := s.product.UpdateCategory(ctx, req.GetId(), req.GetName())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to update category")
+	}
+
+	category := &productv1.Category{
+		Id:   updatedCategory.ID.Hex(),
+		Name: updatedCategory.CategoryName,
+	}
+
+	return &productv1.UpdateCategoryResponse{
+		Category: category,
+	}, nil
+
+}
+
+func (s *serverAPI) DeleteCategory(ctx context.Context, req *productv1.DeleteCategoryRequest) (*productv1.DeleteCategoryResponse, error) {
+	deleteCategoryRequest := structs.DeleteCategoryRequest{
+		CategoryID: req.Id,
+	}
+
+	err := s.v.Struct(deleteCategoryRequest)
+
+	resp, err := s.product.DeleteCategory(ctx, req.GetId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to delete category")
+	}
+
+	return &productv1.DeleteCategoryResponse{
+		Response: resp,
 	}, nil
 }
