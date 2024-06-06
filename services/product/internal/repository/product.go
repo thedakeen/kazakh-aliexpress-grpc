@@ -177,7 +177,8 @@ func (s *Storage) UpdateCategory(ctx context.Context, categoryID string, categor
 	}
 
 	var updatedCategory entities.Category
-	err = s.database.Collection("categories").FindOneAndUpdate(ctx, filter, update).Decode(&updatedCategory)
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	err = s.database.Collection("categories").FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedCategory)
 	if err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNoDocuments):
